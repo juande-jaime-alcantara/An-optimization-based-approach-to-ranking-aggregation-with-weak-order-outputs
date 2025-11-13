@@ -1,0 +1,150 @@
+model pOBOP
+
+uses "mmxprs", "mmsystem"
+
+parameters
+	! Input file (change this to load a different instance)
+	DATAFILE = '../Instances/2/LPE-68-01.dat'
+	! Output file where results will be stored
+	OUTFILE = '../p-OBOP_Results.txt'
+end-parameters
+
+declarations
+	! Number of items
+	n: integer
+	! Number of voters
+	m: integer
+	! Number of buckets
+	p: integer
+end-declarations
+
+initializations from DATAFILE
+	n; m
+end-initializations
+
+! Number of buckets (modifiable)
+p := 2
+
+declarations
+	! Set of items	
+	items = 1..n
+	! Set of buckets
+	buckets = 1..p
+	
+	! Pair order matrix
+	c: array(items, items) of real
+		
+	! Decision variables
+	x: array(items, items) of mpvar
+		! x(r,s)=1 if r comes before or is tied with s, and 0 otherwise
+	alpha: array(items) of mpvar
+		!alpha(r)=1 if r is chosen as the representative of a bucket, and 0 otherwise
+	beta: array(items, items) of mpvar
+		!betay(r,s)= if r belongs to a bucket whose representative is s, and 0 otherwise
+	d: array(items, items) of mpvar
+		! Auxiliary deviation variables
+end-declarations
+	
+initializations from DATAFILE
+	c
+end-initializations
+
+!Objective function: minimize total deviation
+obj := 2 * sum(r,s in items | r < s) d(r,s)
+
+! For every pair (r,s), at least one must precede the other
+forall(r,s in items | r < s) x(r,s) + x(s,r) >= 1
+
+! Transitivity: if r precedes s and s precedes t, then r must precede t
+forall(r,s,t in items | r <> s and s <> t and t <> r) x(r,s) + x(s,t) <= 1 + x(r,t)
+
+! Number of buckets must be equal to p
+sum(r in items) alpha(r) = p
+
+! An item can only belong to a bucket if its representative is selected
+forall(r,s in items | r < s) beta(r,s) <= alpha(s)
+
+! Each item belongs either to its own bucket or to a bucket represented by a larger index
+forall(r in items) sum(s in items | r < s) beta(r,s) + alpha(r) = 1
+
+! Items in the same bucket are tied
+forall(r,s in items | r <> s) do
+	x(r,s) >= beta(r,s)
+	x(s,r) >= beta(r,s)  
+end-do
+
+! Valid inequality linking membership and tie variables
+forall(r,s in items | r <> s) beta(r,s) + alpha(s) <= x(r,s) + x(s,r)
+
+! Each bucket has exactly one representative (the item with largest index in that bucket)
+forall(r,s in items | r < s) x(r,s) + x(s,r) + alpha(r) <= 2
+
+! Definition of the auxiliary deviation variables d(r,s)
+forall(r,s in items | r < s) do
+	d(r,s) >= c(r,s) - (x(r,s) - x(s,r) + 1)/2
+	d(r,s) >= (x(r,s) - x(s,r) + 1)/2 - c(r,s)
+end-do
+
+! Binary declaration for the variables
+forall(r,s in items | r <> s) x(r,s) is_binary
+forall(r in items) alpha(r) is_binary
+forall(r,s in items | r < s) beta(r,s) is_binary
+
+!Linear relaxation (optional)
+minimize(XPRS_LIN, obj)
+LR_Time := getparam("XPRS_TIME")
+LR_Bound := getobjval
+
+! Solve the MIP with a time limit of two days
+setparam('XPRS_MAXTIME',-172800)
+minimize(obj)
+
+! Save results to the output file
+fopen(OUTFILE, F_OUTPUT + F_APPEND)
+	writeln(DATAFILE)
+	writeln
+	
+	 ! Performance information
+	writeln('n: ', n)
+	writeln('m: ', m)
+	writeln('LR Bound: ', LR_Bound)
+	writeln('LR Time: ', LR_Time)
+	writeln('Objective value: ', getparam("XPRS_MIPOBJVAL"))
+	writeln('Final bound: ', getparam("XPRS_BESTBOUND"))
+	writeln('Gap: ', (getparam("XPRS_MIPOBJVAL") -  getparam("XPRS_BESTBOUND"))/ getparam("XPRS_BESTBOUND"))
+	writeln('Time: ', getparam("XPRS_TIME"))
+	writeln('Nodes: ', getparam("XPRS_NODES"))
+	writeln
+	
+	! Construction of the final ranking using buckets
+	aux := n
+	stp := 0
+	forall(t in items) do
+		exi := 0 
+		forall(r in items) do
+			if round(sum(s in items) getsol(x(r,s))) <= aux then
+				exi := 1
+			end-if
+		end-do
+		if exi = 1 then
+			write('Bucket ', t, ': ')
+		end-if
+		stp := 0
+		while (stp = 0 and aux >= 0) do
+			forall(r in items) do
+		    	if round(sum(s in items) getsol(x(r,s))) = aux then
+		       		write(r, "  ")
+		       		stp := 1
+		   		end-if
+			end-do
+			aux := aux - 1
+	    end-do
+		if exi = 1 then
+			writeln
+		end-if
+	end-do
+	writeln
+	writeln
+fclose(F_OUTPUT)
+	
+end-model

@@ -1,0 +1,209 @@
+model Fair_OBOP
+
+uses "mmxprs", "mmsystem"
+
+parameters
+	! Input file (change this to load a different instance)
+	DATAFILE = '../Instances/2/LPE-68-01.dat'
+	! Output file where results will be stored
+	OUTFILE = '../OBOP_Results.txt'
+end-parameters
+
+declarations
+	! Number of items
+	n: integer
+	! Number of voters
+	m: integer
+	! Number of groups
+	g: integer
+	! Minimum number of buckets
+	p1: integer
+	! Maximum number of buckets
+	p2: integer
+end-declarations
+
+initializations from DATAFILE
+	n; m
+end-initializations
+
+! Number of groups (modifiable)
+g := 2
+
+! Minimum number of buckets (modifiable)
+p1 := 2
+
+! Maximum number of buckets (modifiable)
+p2 := 5
+
+declarations
+	! Set of items	
+	items = 1..n
+	! Set of groups
+	groups = 1..g
+	! Set of buckets
+	buckets = 1..p2
+	
+	! Pair order matrix
+	c: array(items, items) of real
+	
+	! Numerators and denominators for fairness bounds
+	eta: array(groups, buckets) of integer
+	rho: array(groups, buckets) of integer
+	kappa: array(groups, buckets) of integer
+	tau: array(groups, buckets) of integer
+		
+	! Decision variables
+	x: array(items, items) of mpvar
+		! x(r,s)=1 if r comes before or is tied with s, and 0 otherwise
+	y: array(items, items) of mpvar
+		! y(r,u)=1 if item r is assigned to bucket u, and 0 otherwise
+	d: array(items, items) of mpvar
+		! Auxiliary deviation variables
+end-declarations
+	
+initializations from DATAFILE
+	c
+end-initializations
+
+! Groups (modifiable)
+forall(r in items | r <= 0.8 * n) G1 += {r}
+forall(r in items | r not in G1) G2 += {r}
+G := [G1, G2]
+! Alernative for 3 groups
+!forall(r in items | r mod 3 = 0) G1 += {r}
+!forall(r in items | r mod 3 = 1) G2 += {r}
+!forall(r in items | r mod 3 = 2) G3 += {r}
+!G := [G1, G2, G3]
+
+! GCD function (Euclidean algorithm)
+function gcd(a: integer, b: integer): integer
+	declarations
+		aa, bb, t: integer
+	end-declarations
+	aa := abs(a); bb := abs(b)
+	while (bb <> 0) do
+		t := bb
+		bb := aa mod t
+		aa := t
+	end-do
+	returned := aa
+end-function
+
+! Reduced numerators and denominators for group proportions (modifiable)
+forall(i in groups, l in buckets) do
+	! Size of group i
+	num := sum(j in G(i)) 1
+	den := n
+	g := gcd(num, den)
+	if g = 0 then
+		! Caso degenerado (por seguridad): deja tal cual
+		eta(i,l) := num
+		rho(i,l) := den
+		kappa(i,l) := num
+		tau(i,l) := den
+	else
+		eta(i,l) := num div g
+		rho(i,l) := den div g
+		kappa(i,l) := num div g
+		tau(i,l) := den div g
+	end-if		
+end-do
+
+!Objective function: minimize total deviation
+obj := 2 * sum(r,s in items | r < s) d(r,s)
+
+! For every pair (r,s), at least one must precede the other
+forall(r,s in items | r < s) x(r,s) + x(s,r) >= 1
+
+! Transitivity: if r precedes s and s precedes t, then r must precede t
+forall(r,s,t in items | r <> s and s <> t and t <> r) x(r,s) + x(s,t) <= 1 + x(r,t)
+
+! Each item is assigned to exactly one bucket
+forall(r in items) sum(u in buckets) y(r,u) = 1
+
+! Ensures that the required minimum number of buckets are non-empty
+forall(u in buckets | u <= p1) sum(r in items) y(r,u) >= 1
+
+! Buckets are filled in order
+forall(r in items, u in buckets | p1 < u and u < p2) sum(s in items) y(s,u) >= sum(v in buckets | u < v) y(r,v)
+
+! Items in the same bucket are tied
+forall(r,s in items, u in buckets) y(r,u) + y(s,u) <= x(r,s) + x(s,r)
+
+! Bucket ordering constraints
+forall(r,s in items, u in buckets | r <> s and u < n) x(s,r) <= 2 - sum(v in buckets | v <= u) y(r,v) - sum(v in buckets | v > u) y(s,v)
+
+! Lower fairness bounds
+forall(i in groups, l in buckets) eta(i,l) * sum(r in items, u in buckets | u <= l) y(r,u) <= rho(i,l) * sum(s in G(i), u in buckets | u <= l) y(s,u) + (rho(i,l) - 1)
+
+! Upper fairness bounds
+forall(i in groups, l in buckets) tau(i,l) * sum(s in G(i), u in buckets | u <= l) y(s,u) - (tau(i,l) - 1) <= kappa(i,l) * sum(r in items, u in buckets | u <= l) y(r,u)
+
+! Definition of the auxiliary deviation variables d(r,s)
+forall(r,s in items | r < s) do
+	d(r,s) >= c(r,s) - (x(r,s) - x(s,r) + 1)/2
+	d(r,s) >= (x(r,s) - x(s,r) + 1)/2 - c(r,s)
+end-do
+
+! Binary declaration for the variables
+forall(r,s in items | r <> s) x(r,s) is_binary
+forall(r in items, u in buckets) y(r,u) is_binary
+
+!Linear relaxation (optional)
+minimize(XPRS_LIN, obj)
+LR_Time := getparam("XPRS_TIME")
+LR_Bound := getobjval
+
+! Solve the MIP with a time limit of two days
+setparam('XPRS_MAXTIME',-172800)
+minimize(obj)
+
+! Save results to the output file
+fopen(OUTFILE, F_OUTPUT + F_APPEND)
+	writeln(DATAFILE)
+	writeln
+	
+	 ! Performance information
+	writeln('n: ', n)
+	writeln('m: ', m)
+	writeln('LR Bound: ', LR_Bound)
+	writeln('LR Time: ', LR_Time)
+	writeln('Objective value: ', getparam("XPRS_MIPOBJVAL"))
+	writeln('Final bound: ', getparam("XPRS_BESTBOUND"))
+	writeln('Gap: ', (getparam("XPRS_MIPOBJVAL") -  getparam("XPRS_BESTBOUND"))/ getparam("XPRS_BESTBOUND"))
+	writeln('Time: ', getparam("XPRS_TIME"))
+	writeln('Nodes: ', getparam("XPRS_NODES"))
+	writeln
+	
+	! Construction of the final ranking using buckets
+	aux := n
+	stp := 0
+	forall(t in items) do
+		exi := 0 
+		forall(r in items) do
+			if round(sum(s in items) getsol(x(r,s))) <= aux then
+				exi := 1
+			end-if
+		end-do
+		if exi = 1 then
+			write('Bucket ', t, ': ')
+		end-if
+		stp := 0
+		while (stp = 0 and aux >= 0) do
+			forall(r in items) do
+		    	if round(sum(s in items) getsol(x(r,s))) = aux then
+		       		write(r, "  ")
+		       		stp := 1
+		   		end-if
+			end-do
+			aux := aux - 1
+	    end-do
+		if exi = 1 then
+			writeln
+		end-if
+	end-do
+	writeln
+	writeln
+fclose(F_OUTPUT)
+	
+end-model
