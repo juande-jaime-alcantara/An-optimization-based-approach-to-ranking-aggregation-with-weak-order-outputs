@@ -109,7 +109,7 @@ To run an instance:
 
 <pre><code>@article{landete2025optimizing,
   title   = {Optimizing Weak Orders via MILP},
-  author  = {Aledo, Juan A and Dom{\'i}nguez, Concepci{\'o}n and Jaime-Alc{'a}ntara, Juan de Dios and Landete, Mercedes},
+  author  = {Aledo, Juan A and Dom{\'i}nguez, Concepci{\'o}n and Jaime-Alc{\'a}ntara, Juan de Dios and Landete, Mercedes},
   journal = {to appear},
   year    = {2025}
 }
