@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<h1>Optimizing Weak Orders via Integer Linear Programming — Supporting Material</h1>
+<h1>Optimizing Weak Orders via Mixed Integer Linear Programming — Supporting Material</h1>
 
 <p>This repository provides the supplementary material for the article:</p>
 
