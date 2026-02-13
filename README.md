@@ -9,9 +9,9 @@
 
 <p><strong>Authors</strong><br>
 Juan de Dios Jaime-Alcántara – Universidad Miguel Hernández de Elche (UMH), Spain<br>
-Mercedes Landete – Universidad Miguel Hernández de Elche (UMH), Spain
+Mercedes Landete – Universidad Miguel Hernández de Elche (UMH), Spain<br>
 Concepción Domínguez – Universidad de Murcia (UM), Spain<br>
-Juan A. Aledo – Universidad de Castilla-La Mancha (UCLM), Spain<br>
+Juan A. Aledo – Universidad de Castilla-La Mancha (UCLM), Spain
 </p>
 
 <hr>
