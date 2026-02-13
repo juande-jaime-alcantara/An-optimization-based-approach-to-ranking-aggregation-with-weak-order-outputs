@@ -5,7 +5,7 @@
 
 <p>This repository provides the supplementary material for the article:</p>
 
-<p><strong><em>“Optimizing Weak Orders via Integer Linear Programming”</em></strong></p>
+<p><strong><em>“Optimizing Weak Orders via Mixed Integer Linear Programming”</em></strong></p>
 
 <p><strong>Authors</strong><br>
 Juan de Dios Jaime-Alcántara – Universidad Miguel Hernández de Elche (UMH), Spain<br>
@@ -20,7 +20,8 @@ Juan A. Aledo – Universidad de Castilla-La Mancha (UCLM), Spain
 
 <pre><code>Instances/
  ├── 1/
- └── 2/
+ ├── 2/
+ └── 3/
 Models/
 Docs/
  ├── solutions.pdf
@@ -31,6 +32,7 @@ README.md
 <ul>
   <li><code>Instances/1/</code>: instances used for <strong>comparison experiments</strong> with existing models.</li>
   <li><code>Instances/2/</code>: instances used to <strong>evaluate the proposed MILP formulations</strong>.</li>
+  <li><code>Instances/3/</code>: instance used for the <strong>university ranking application experiments</strong>.</li>
   <li><code>Models/</code>: Xpress/Mosel model files implementing the MILP formulations presented in the article.</li>
   <li><code>Docs/</code>:
     <ul>
@@ -95,7 +97,7 @@ To run an instance:
 
 <ol>
   <li>Open one of the <code>.mos</code> files in Xpress.</li>
-  <li>Provide a <code>.dat</code> file from <code>Instances/1/</code> or <code>Instances/2/</code>.</li>
+  <li>Provide a <code>.dat</code> file from <code>Instances/1/</code>, <code>Instances/2/</code> or <code>Instances/3/</code>.</li>
   <li>Execute the model to obtain the optimal weak order and the corresponding objective value.</li>
 </ol>
 
