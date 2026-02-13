@@ -32,7 +32,7 @@ README.md
 <ul>
   <li><code>Instances/1/</code>: instances used for <strong>comparison experiments</strong> with existing models.</li>
   <li><code>Instances/2/</code>: instances used to <strong>evaluate the proposed MILP formulations</strong>.</li>
-  <li><code>Instances/3/</code>: instance used for the <strong>university ranking application experiments</strong>.</li>
+  <li><code>Instances/3/</code>: instances used for the <strong>university ranking application experiments</strong>.</li>
   <li><code>Models/</code>: Xpress/Mosel model files implementing the MILP formulations presented in the article.</li>
   <li><code>Docs/</code>:
     <ul>
