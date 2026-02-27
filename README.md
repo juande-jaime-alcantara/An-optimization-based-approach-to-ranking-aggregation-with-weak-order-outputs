@@ -8,10 +8,10 @@
 <p><strong><em>“An optimization-based approach to ranking aggregation with weak order outputs”</em></strong></p>
 
 <p><strong>Authors</strong><br>
+Juan A. Aledo – Universidad de Castilla-La Mancha (UCLM), Spain<br>
+ Concepción Domínguez – Universidad de Murcia (UM), Spain<br>
 Juan de Dios Jaime-Alcántara – Universidad Miguel Hernández de Elche (UMH), Spain<br>
-Mercedes Landete – Universidad Miguel Hernández de Elche (UMH), Spain<br>
-Concepción Domínguez – Universidad de Murcia (UM), Spain<br>
-Juan A. Aledo – Universidad de Castilla-La Mancha (UCLM), Spain
+Mercedes Landete – Universidad Miguel Hernández de Elche (UMH), Spain
 </p>
 
 <hr>
@@ -111,7 +111,7 @@ To run an instance:
 
 <pre><code>@article{landete2025optimizing,
   title   = {Optimizing Weak Orders via Integer Linear Programming},
-  author  = {Jaime-Alc{\'a}ntara, Juan de Dios and Landete, Mercedes and Dom{\'i}nguez, Concepci{\'o}n and Aledo, Juan A},
+  author  = {Aledo, Juan A and Dom{\'i}nguez, Concepci{\'o}n and Jaime-Alc{\'a}ntara, Juan de Dios and Landete, Mercedes},
   journal = {to appear},
   year    = {2025}
 }
