@@ -11,7 +11,7 @@
 
 <p><strong>Authors</strong><br>
 Juan A. Aledo – Universidad de Castilla-La Mancha (UCLM), Spain<br>
- Concepción Domínguez – Universidad de Murcia (UM), Spain<br>
+Concepción Domínguez – Universidad de Murcia (UM), Spain<br>
 Juan de Dios Jaime-Alcántara – Universidad Miguel Hernández de Elche (UMH), Spain<br>
 Mercedes Landete – Universidad Miguel Hernández de Elche (UMH), Spain
 </p>
