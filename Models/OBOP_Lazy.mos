@@ -1,0 +1,190 @@
+model OBOP
+
+uses "mmxprs", "mmsystem"
+
+parameters
+	! Input file (change this to load a different instance)
+	DATAFILE = '../Instances/1/ED-10-02.dat'
+	! Output file where results will be stored
+	OUTFILE = './outputs/OBOP_Results.txt'
+end-parameters
+
+forward procedure set_optimizer_controls
+
+declarations
+	! Number of items
+	n: integer
+	! Number of voters
+	m: integer
+end-declarations
+
+initializations from DATAFILE
+	n; m
+end-initializations
+
+declarations
+	! Set of items
+	items = 1..n
+
+	! Pair order matrix
+	c: array(items, items) of real
+
+	! Decision variables
+	x: array(items, items) of mpvar
+		! x(r,s)=1 if r comes before or is tied with s, and 0 otherwise
+	d: array(items, items) of mpvar
+		! Auxiliary deviation variables
+end-declarations
+
+initializations from DATAFILE
+	c
+end-initializations
+
+!Objective function: minimize total deviation
+obj := 2 * sum(r,s in items | r < s) d(r,s)
+
+! For every pair (r,s), at least one must precede the other
+forall(r,s in items | r < s) x(r,s) + x(s,r) >= 1
+
+! Transitivity: if r precedes s and s precedes t, then r must precede t
+forall(r,s,t in items | r <> s and s <> t and t <> r and c(r,s) >= 0.25 and c(s,t) >= 0.25 and c(t,r) >= 0.25) x(r,s) + x(s,t) <= 1 + x(r,t)
+
+! Definition of the auxiliary deviation variables d(r,s)
+forall(r,s in items | r < s) do
+	d(r,s) >= c(r,s) - (x(r,s) - x(s,r) + 1)/2
+	d(r,s) >= (x(r,s) - x(s,r) + 1)/2 - c(r,s)
+end-do
+
+! Binary declaration for the variables
+forall(r,s in items | r <> s) x(r,s) is_binary
+
+! Solve the MIP with a time limit of two days
+setparam('XPRS_MAXTIME',-172800)
+
+! Prevent dominance or symmetry reductions by the Optimizer
+set_optimizer_controls
+
+! Set a callback to check heuristic solutions
+setcallback(XPRS_CB_PREINTSOL, "cb_preintsol")
+
+! Set a callback to create subtour elimination constraints for integer solutions
+setcallback(XPRS_CB_OPTNODE, "cb_optnode")
+
+! Minimizamos la funcion objetivo
+minimize(obj)
+
+! Save results to the output file
+fopen(OUTFILE, F_OUTPUT + F_APPEND)
+	writeln(DATAFILE)
+	writeln
+
+	 ! Performance information
+	writeln('n: ', n)
+	writeln('m: ', m)
+	writeln('Objective value: ', getparam("XPRS_MIPOBJVAL"))
+	writeln('Final bound: ', getparam("XPRS_BESTBOUND"))
+	writeln('Gap: ', (getparam("XPRS_MIPOBJVAL") -  getparam("XPRS_BESTBOUND"))/ getparam("XPRS_BESTBOUND"))
+	writeln('Time: ', getparam("XPRS_TIME"))
+	writeln('Nodes: ', getparam("XPRS_NODES"))
+	writeln
+
+	! Construction of the final ranking using buckets
+	aux := n
+	stp := 0
+	forall(t in items) do
+		exi := 0
+		forall(r in items) do
+			if round(sum(s in items) getsol(x(r,s))) <= aux then
+				exi := 1
+			end-if
+		end-do
+		if exi = 1 then
+			write('Bucket ', t, ': ')
+		end-if
+		stp := 0
+		while (stp = 0 and aux >= 0) do
+			forall(r in items) do
+		    	if round(sum(s in items) getsol(x(r,s))) = aux then
+		       		write(r, "  ")
+		       		stp := 1
+		   		end-if
+			end-do
+			aux := aux - 1
+	    end-do
+		if exi = 1 then
+			writeln
+		end-if
+	end-do
+	writeln
+	writeln
+fclose(F_OUTPUT)
+
+! Optional cut to force a different solution (can be used inside a loop to enumerate multiple solutions)
+!1 <= sum(r,s in items | r <> s) ((1 - getsol(x(r,s)))*x(r,s) + getsol(x(r,s))*(1-x(r,s)))
+!minimize(obj)
+
+!-----------------------------------------------------------------
+! Disable Optimizer features that can reduce the search space.
+! Since the Optimizer only sees the initial set of constraints, it
+! could make inferences that drop some solutions due to dominance orl
+! symmetries. These reductions might not be correct when all constraints
+! are considered. So we disable all symmetry or dominance related features.
+procedure set_optimizer_controls
+   declarations
+     presolveOps: integer
+     mipPresolve: integer
+   end-declarations
+
+   presolveOps := getparam("XPRS_PRESOLVEOPS")
+   presolveOps := bittest(presolveOps, bitneg(bitval(0))) ! Disable singleton column removal
+   presolveOps := bittest(presolveOps, bitneg(bitval(3))) ! Disable dual reductions
+   presolveOps := bittest(presolveOps, bitneg(bitval(6))) ! Disable duplicate column removal
+   presolveOps := bitset(presolveOps, bitval(10)) ! Do not detect and create semi continuous variables
+   setparam("XPRS_PRESOLVEOPS", presolveOps)
+
+   mipPresolve := getparam("XPRS_MIPPRESOLVE")
+   mipPresolve := bittest(mipPresolve, bitneg(bitval(4)))
+   setparam("XPRS_MIPPRESOLVE", mipPresolve)  ! Disable node-to-node dual reductions
+
+  ! Disable symmetry detection
+  setparam("XPRS_SYMMETRY", 0)
+end-procedure
+
+!-----------------------------------------------------------------
+! Callback function triggered when the Optimizer has a new integer solution.
+! We use this function to reject any heuristic solutions that contain subtours.
+public procedure cb_preintsol(isheur: boolean, cutoff: real)
+  forall(r,s,t in items | r <> s and s <> t and r <> t) do
+  	if getsol(x(r,s)) + getsol(x(s,t)) > 1 + getsol(x(r,t)) + 0.0001 then
+  		rejectintsol
+  		!writeln("INVALID INTEGER SOLUTION!!!")
+  	end-if
+  end-do
+end-procedure
+
+public function cb_optnode : boolean
+	declarations
+		ncut: integer                        ! Counter for cuts
+		cut: array(range) of linctr          ! Cuts
+		cutid: array(range) of integer       ! Cut type identification
+		type: array(range) of integer        ! Cut constraint type
+	end-declarations
+
+	if getparam("XPRS_MIPINFEAS") = 0 then
+	    ncut:= 0
+	    forall(r,s,t in items | r <> s and s <> t and r <> t and getsol(x(r,s)) + getsol(x(s,t)) > 1 + getsol(x(r,t)) + 0.0001) do
+	    	ncut += 1
+	    	cut(ncut):= x(r,s) + x(s,t) - x(r,t) - 1
+	        cutid(ncut):= 0
+	        type(ncut):= CT_LEQ
+	    end-do
+		if(ncut>0) then
+			addcuts(cutid, type, cut)
+			! Add cuts to the problem
+			writeln("Added ", ncut, " cuts")
+		end-if
+		returned := false
+	end-if
+end-function
+
+end-model
