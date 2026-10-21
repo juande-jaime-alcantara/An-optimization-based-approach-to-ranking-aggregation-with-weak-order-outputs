@@ -27,6 +27,7 @@ Mercedes Landete – Universidad Miguel Hernández de Elche (UMH), Spain
  └── 4/
 Models/
 Docs/
+ ├── Solutions.pdf
  └── Supplementary material: comparison of p-OBOP formulations.pdf
 README.md
 </code></pre>
@@ -39,6 +40,7 @@ README.md
   <li><code>Models/</code>: Xpress/Mosel model files implementing the MILP formulations presented in the article, including the static and lazy-constraint OBOP implementations. The latter includes the callback and separation routines.</li>
   <li><code>Docs/</code>:
     <ul>
+      <li><code>Solutions.pdf</code>: solutions obtained for all models.</li>
       <li><code>Supplementary material: comparison of p-OBOP formulations.pdf</code>: additional computational comparisons of the p-OBOP formulations.</li>
     </ul>
   </li>
@@ -90,9 +92,10 @@ c:
 
 <p>
 The sports application files also contain descriptive metadata.
-The synthetic instance files contain <code>n</code> and <code>c</code>, without
-<code>m</code>, since their matrices are generated directly. When using these
-files, omit <code>m</code> from the model's data initialization and output statements.
+The synthetic instance files contain <code>n</code> and <code>c</code>,
+without <code>m</code>, since their matrices are generated directly.
+When using these files, omit <code>m</code> from the model's data
+initialization and output statements.
 </p>
 
 <hr>
@@ -108,26 +111,14 @@ To run an instance:
 <ol>
   <li>Open one of the <code>.mos</code> files in Xpress.</li>
   <li>Set <code>DATAFILE</code> to an existing <code>.dat</code> file from <code>Instances/1/</code>, <code>Instances/2/</code>, <code>Instances/3/</code> or <code>Instances/4/</code>.</li>
-  <li>Set <code>OUTFILE</code> to the desired output file and ensure that its parent directory exists. Check both paths relative to the execution working directory.</li>
+  <li>Set <code>OUTFILE</code> to the desired output file and ensure that its parent directory exists.</li>
   <li>Set the parameters of the selected variant: <code>p</code> for the number of buckets, <code>q</code> for prescribed bucket sizes, <code>k</code> for the upper-part size, or the group definitions, representation bounds, and bucket limits <code>p1</code> and <code>p2</code> for Fair OBOP.</li>
-  <li>Check the solver settings and execute the model to obtain a weak order and its objective value. Inspect the termination status and bound to determine whether optimality was certified.</li>
+  <li>Execute the model to obtain a weak order and its objective value. Inspect the termination status and bound to determine whether optimality was certified.</li>
 </ol>
 
 <p>
-The default instance paths and variant parameters are examples and must be
-adapted to the experiment being reproduced. For the BOX fairness experiments,
-the bucket limits correspond to the minimum and maximum numbers of buckets
-attained by optimal standard OBOP solutions, as reported in the article.
-The sports applications require the capacities, selection sizes, and country
-limits described in Section 6.
-</p>
-
-<p>
-Time limits and explicitly modified solver parameters appear in the scripts.
-The supplied files use a time limit of 172800 seconds; the synthetic scalability
-experiments use 7200 seconds. Each computational job was assigned four threads.
-The supplied Mosel files do not declare a <code>THREADS</code> input parameter,
-so the thread configuration must be applied separately.
+Adjust the instance paths, model parameters, and solver settings to match
+the experiment described in the article.
 </p>
 
 <p>The meaning and purpose of each formulation are described in detail in the article.</p>
