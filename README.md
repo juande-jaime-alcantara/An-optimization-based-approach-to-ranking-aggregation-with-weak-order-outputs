@@ -23,23 +23,23 @@ Mercedes Landete – Universidad Miguel Hernández de Elche (UMH), Spain
 <pre><code>Instances/
  ├── 1/
  ├── 2/
- └── 3/
+ ├── 3/
+ └── 4/
 Models/
 Docs/
- ├── solutions.pdf
- └── model-configs-and-counterexample.pdf
+ └── Supplementary material: comparison of p-OBOP formulations.pdf
 README.md
 </code></pre>
 
 <ul>
-  <li><code>Instances/1/</code>: instances used for <strong>comparison experiments</strong> with existing models.</li>
-  <li><code>Instances/2/</code>: instances used to <strong>evaluate the proposed MILP formulations</strong>.</li>
-  <li><code>Instances/3/</code>: instances used for the <strong>university ranking application experiments</strong>.</li>
-  <li><code>Models/</code>: Xpress/Mosel model files implementing the MILP formulations presented in the article.</li>
+  <li><code>Instances/1/</code>: PrefLib and MovieLens benchmark instances used for <strong>comparison with published heuristic results</strong>.</li>
+  <li><code>Instances/2/</code>: the ten BOX instances used to <strong>evaluate the constrained OBOP variants</strong>.</li>
+  <li><code>Instances/3/</code>: instances used for the <strong>sports applications</strong>: UEFA Champions League seeding pots, ISSF World Championship qualification, and World Artistic Gymnastics Championships qualification.</li>
+  <li><code>Instances/4/</code>: the 25 synthetic instances used for the <strong>computational scalability experiments</strong>, with five instances for each size <code>n ∈ {20, 40, 60, 80, 100}</code>.</li>
+  <li><code>Models/</code>: Xpress/Mosel model files implementing the MILP formulations presented in the article, including the static and lazy-constraint OBOP implementations. The latter includes the callback and separation routines.</li>
   <li><code>Docs/</code>:
     <ul>
-      <li><code>solutions.pdf</code>: solutions of the considered instances/problems.</li>
-      <li><code>model-configs-and-counterexample.pdf</code>: additional material including a comparison of model configurations and a counterexample illustrating the behaviour of the p-OBOP formulation.</li>
+      <li><code>Supplementary material: comparison of p-OBOP formulations.pdf</code>: additional computational comparisons of the p-OBOP formulations.</li>
     </ul>
   </li>
 </ul>
@@ -48,7 +48,7 @@ README.md
 
 <h2>📄 Format of the <code>.dat</code> files</h2>
 
-<p>Each instance is provided in plain text format and contains:</p>
+<p>Each instance is provided in plain text format. Benchmark instances contain:</p>
 
 <ul>
   <li><code>n</code>: number of items</li>
@@ -88,20 +88,47 @@ c:
 ]
 </code></pre>
 
+<p>
+The sports application files also contain descriptive metadata.
+The synthetic instance files contain <code>n</code> and <code>c</code>, without
+<code>m</code>, since their matrices are generated directly. When using these
+files, omit <code>m</code> from the model's data initialization and output statements.
+</p>
+
 <hr>
 
 <h2>▶️ Using the models</h2>
 
 <p>
 The Mosel files in <code>Models/</code> correspond directly to the MILP formulations described in the article.
+The experiments used FICO Xpress 9.4.2 and Mosel 6.6.1.
 To run an instance:
 </p>
 
 <ol>
   <li>Open one of the <code>.mos</code> files in Xpress.</li>
-  <li>Provide a <code>.dat</code> file from <code>Instances/1/</code>, <code>Instances/2/</code> or <code>Instances/3/</code>.</li>
-  <li>Execute the model to obtain the optimal weak order and the corresponding objective value.</li>
+  <li>Set <code>DATAFILE</code> to an existing <code>.dat</code> file from <code>Instances/1/</code>, <code>Instances/2/</code>, <code>Instances/3/</code> or <code>Instances/4/</code>.</li>
+  <li>Set <code>OUTFILE</code> to the desired output file and ensure that its parent directory exists. Check both paths relative to the execution working directory.</li>
+  <li>Set the parameters of the selected variant: <code>p</code> for the number of buckets, <code>q</code> for prescribed bucket sizes, <code>k</code> for the upper-part size, or the group definitions, representation bounds, and bucket limits <code>p1</code> and <code>p2</code> for Fair OBOP.</li>
+  <li>Check the solver settings and execute the model to obtain a weak order and its objective value. Inspect the termination status and bound to determine whether optimality was certified.</li>
 </ol>
+
+<p>
+The default instance paths and variant parameters are examples and must be
+adapted to the experiment being reproduced. For the BOX fairness experiments,
+the bucket limits correspond to the minimum and maximum numbers of buckets
+attained by optimal standard OBOP solutions, as reported in the article.
+The sports applications require the capacities, selection sizes, and country
+limits described in Section 6.
+</p>
+
+<p>
+Time limits and explicitly modified solver parameters appear in the scripts.
+The supplied files use a time limit of 172800 seconds; the synthetic scalability
+experiments use 7200 seconds. Each computational job was assigned four threads.
+The supplied Mosel files do not declare a <code>THREADS</code> input parameter,
+so the thread configuration must be applied separately.
+</p>
 
 <p>The meaning and purpose of each formulation are described in detail in the article.</p>
 
@@ -111,11 +138,11 @@ To run an instance:
 
 <p>If you use this material, please cite:</p>
 
-<pre><code>@article{aledo2025optimizing,
-  title   = {Optimizing Weak Orders via Integer Linear Programming},
-  author  = {Aledo, Juan A and Dom{\'i}nguez, Concepci{\'o}n and Jaime-Alc{\'a}ntara, Juan de Dios and Landete, Mercedes},
-  journal = {to appear},
-  year    = {2025}
+<pre><code>@unpublished{aledo2026aggregation,
+  title   = {An optimization-based approach to ranking aggregation with weak order outputs},
+  author  = {Aledo, Juan A. and Dom{\'i}nguez, Concepci{\'o}n and Jaime-Alc{\'a}ntara, Juan de Dios and Landete, Mercedes},
+  note    = {Manuscript},
+  year    = {2026}
 }
 </code></pre>
 
