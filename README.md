@@ -3,7 +3,7 @@
 
 <h1>An optimization-based approach to ranking aggregation with weak order outputs — Supporting Material</h1>
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18799994.svg)](https://doi.org/10.5281/zenodo.18799994)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23565472.svg)](https://doi.org/10.5281/zenodo.23565472)
 
 <p>This repository provides the supplementary material for the article:</p>
 
