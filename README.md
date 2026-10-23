@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Supporting Material — Weak Order Rank Aggregation</title>
+</head>
+<body>
 
 <h1>An optimization-based approach to ranking aggregation with weak order outputs — Supporting Material</h1>
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23565472.svg)](https://doi.org/10.5281/zenodo.23565472)
+<p>
+  <a href="https://doi.org/10.5281/zenodo.23565472">
+    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.23565472.svg" alt="DOI">
+  </a>
+</p>
 
 <p>This repository provides the supplementary material for the article:</p>
 
@@ -29,6 +38,7 @@ Models/
 Docs/
  ├── Solutions.pdf
  └── Supplementary material: comparison of p-OBOP formulations.pdf
+generator.py
 README.md
 </code></pre>
 
@@ -40,10 +50,11 @@ README.md
   <li><code>Models/</code>: Xpress/Mosel model files implementing the MILP formulations presented in the article, including the static and lazy-constraint OBOP implementations. The latter includes the callback and separation routines.</li>
   <li><code>Docs/</code>:
     <ul>
-      <li><code>Solutions.pdf</code>: solutions obtained for all models.</li>
+      <li><code>Solutions.pdf</code>: supplementary document reporting the solutions obtained for the benchmark instances.</li>
       <li><code>Supplementary material: comparison of p-OBOP formulations.pdf</code>: additional computational comparisons of the p-OBOP formulations.</li>
     </ul>
   </li>
+  <li><code>generator.py</code>: editable Python script used to generate the synthetic instances. It uses only the Python standard library.</li>
 </ul>
 
 <hr>
@@ -53,9 +64,9 @@ README.md
 <p>Each instance is provided in plain text format. Benchmark instances contain:</p>
 
 <ul>
-  <li><code>n</code>: number of items</li>
-  <li><code>m</code>: number of voters</li>
-  <li><code>c</code>: an <code>n × n</code> matrix with aggregated preference intensities</li>
+  <li><code>n</code>: number of items.</li>
+  <li><code>m</code>: number of voters.</li>
+  <li><code>c</code>: an <code>n × n</code> matrix with aggregated preference intensities.</li>
 </ul>
 
 <p>The general structure is:</p>
@@ -100,11 +111,56 @@ initialization and output statements.
 
 <hr>
 
+<h2>⚙️ Generating the synthetic instances</h2>
+
+<p>
+Open <code>generator.py</code> in PyCharm or another Python IDE and run it.
+The generation parameters can be edited at the beginning of the script.
+By default, it creates a <code>synthetic_instances/</code> folder alongside
+the script and writes 25 instances named <code>I1.dat</code> to
+<code>I25.dat</code>.
+</p>
+
+<p>The default configuration is:</p>
+
+<ul>
+  <li>Instance sizes: <code>n ∈ {20, 40, 60, 80, 100}</code>.</li>
+  <li>Five instances per size.</li>
+  <li>Beta distribution parameters: <code>ALPHA = 3</code> and <code>BETA = 1</code>.</li>
+  <li>Random seed: <code>42</code>.</li>
+  <li>Output precision: ten decimal places.</li>
+</ul>
+
+<p>
+For each pair <code>r &lt; s</code>, the script draws a value from a
+Beta(3, 1) distribution and rounds it to ten decimal places to obtain
+<code>c[r][s]</code>. It then sets <code>c[s][r] = 1 - c[r][s]</code>.
+All diagonal entries are set to <code>0.5</code>.
+</p>
+
+<p>
+Instances are numbered consecutively by increasing size:
+<code>I1.dat</code>–<code>I5.dat</code> have 20 items,
+<code>I6.dat</code>–<code>I10.dat</code> have 40 items,
+<code>I11.dat</code>–<code>I15.dat</code> have 60 items,
+<code>I16.dat</code>–<code>I20.dat</code> have 80 items, and
+<code>I21.dat</code>–<code>I25.dat</code> have 100 items.
+</p>
+
+<p>
+The output directory can be changed by editing <code>OUTPUT_DIR</code>.
+Running the script again in the same directory overwrites files with
+the same names. No third-party Python packages are required.
+</p>
+
+<hr>
+
 <h2>▶️ Using the models</h2>
 
 <p>
-The Mosel files in <code>Models/</code> correspond directly to the MILP formulations described in the article.
-The experiments used FICO Xpress 9.4.2 and Mosel 6.6.1.
+The Mosel files in <code>Models/</code> correspond directly to the MILP
+formulations described in the article. The experiments used
+FICO Xpress 9.4.2 and Mosel 6.6.1.
 To run an instance:
 </p>
 
@@ -113,6 +169,7 @@ To run an instance:
   <li>Set <code>DATAFILE</code> to an existing <code>.dat</code> file from <code>Instances/1/</code>, <code>Instances/2/</code>, <code>Instances/3/</code> or <code>Instances/4/</code>.</li>
   <li>Set <code>OUTFILE</code> to the desired output file and ensure that its parent directory exists.</li>
   <li>Set the parameters of the selected variant: <code>p</code> for the number of buckets, <code>q</code> for prescribed bucket sizes, <code>k</code> for the upper-part size, or the group definitions, representation bounds, and bucket limits <code>p1</code> and <code>p2</code> for Fair OBOP.</li>
+  <li>For files without <code>m</code>, omit this parameter from the data initialization and output statements.</li>
   <li>Execute the model to obtain a weak order and its objective value. Inspect the termination status and bound to determine whether optimality was certified.</li>
 </ol>
 
@@ -121,7 +178,10 @@ Adjust the instance paths, model parameters, and solver settings to match
 the experiment described in the article.
 </p>
 
-<p>The meaning and purpose of each formulation are described in detail in the article.</p>
+<p>
+The meaning and purpose of each formulation are described in detail
+in the article.
+</p>
 
 <hr>
 
