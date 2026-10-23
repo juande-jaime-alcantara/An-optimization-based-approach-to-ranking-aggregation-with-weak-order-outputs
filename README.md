@@ -1,10 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Supporting Material — Weak Order Rank Aggregation</title>
-</head>
-<body>
 
 <h1>An optimization-based approach to ranking aggregation with weak order outputs — Supporting Material</h1>
 
