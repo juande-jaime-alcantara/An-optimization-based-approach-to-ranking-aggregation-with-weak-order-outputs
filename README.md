@@ -4,8 +4,8 @@
 <h1>An optimization-based approach to ranking aggregation with weak order outputs — Supporting Material</h1>
 
 <p>
-  <a href="https://doi.org/10.5281/zenodo.23565472">
-    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.23565472.svg" alt="DOI">
+  <a href="https://doi.org/10.5281/zenodo.23592944>
+    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.23592944.svg" alt="DOI">
   </a>
 </p>
 
